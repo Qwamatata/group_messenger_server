@@ -38,6 +38,7 @@ def client_handler(client_socket):
         if string.decode()[0] == '/':
             if string.decode() == '/users':
                 all_users = db_client.execute_query('SELECT username FROM Users;', '62.60.178.229', 10052)
+                print(all_users)
                 for user in all_users:
                     if user in connected_clients:
                         user['status'] = 'online'
