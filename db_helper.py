@@ -1,10 +1,9 @@
 import db_client
-import IlyasMessageProtocol
 
 
-def check_password(name, password):
+def check_password(name, password, host: str, port: int):
     db_query = db_client.execute_query(
-        f'SELECT * FROM Users WHERE Users.username = {name} AND Users.password = {password};', '62.60.178.229', 10052)
+        f'SELECT * FROM Users WHERE Users.username = {name} AND Users.password = {password};', host, port)
     if len(db_query) != 1:
         return 0
     else:

@@ -5,8 +5,20 @@ import threading
 import IlyasMessageProtocol
 import db_helper
 import db_client
+from sys import argv as a
 
 full_message = b'start chat\n'
+
+if len(a) == 1:
+    DB_HOST = '127.0.0.1'
+    DB_PORT = 10052
+    SERVER_PORT = 8652
+    SERVER_HOST = '127.0.0.1'
+else:
+    DB_HOST = '62.60.178.229'
+    DB_PORT = 10052
+    SERVER_PORT = 8652
+    SERVER_HOST = '0.0.0.0'
 
 
 def client_handler(client_socket):
@@ -16,7 +28,7 @@ def client_handler(client_socket):
     while attempts != 0:
         name = IlyasMessageProtocol.receive(client_socket)[1]
         password = IlyasMessageProtocol.receive(client_socket)[1]
-        if not db_helper.check_password(name, password):
+        if not db_helper.check_password(name, password, DB_HOST, DB_PORT):
             attempts -= 1
             IlyasMessageProtocol.send(client_socket, '2'.encode(), 'ERR')
         else:
@@ -37,10 +49,10 @@ def client_handler(client_socket):
             break
         if string.decode()[0] == '/':
             if string.decode() == '/users':
-                all_users = db_client.execute_query('SELECT username FROM Users;', '62.60.178.229', 10052)
+                all_users = db_client.execute_query('SELECT username FROM Users;', DB_HOST, DB_PORT)
                 print(all_users)
                 for user in all_users:
-                    if user in connected_clients:
+                    if user['Users.username'] in connected_clients:
                         user['status'] = 'online'
                     else:
                         user['status'] = 'offline'
@@ -78,7 +90,9 @@ def client_handler(client_socket):
             date = current_time.date().strftime('%d.%m.%y')
             time = current_time.time().strftime('%H:%M:%S')
 
-            print(db_client.execute_query(f'INSERT INTO messages (text, author, date, time, receivers) VALUES ({message.decode()}, {name}, {date}, {time}, {receivers});', '62.60.178.229', 10052))
+            print(db_client.execute_query(
+                f'INSERT INTO messages (text, author, date, time, receivers) VALUES ({message.decode()}, {name}, {date}, {time}, {receivers});',
+                DB_HOST, DB_PORT))
 
     client_socket.close()
 
@@ -87,7 +101,7 @@ connected_clients = {}
 
 socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-socket_server.bind(('0.0.0.0', 8652))
+socket_server.bind((SERVER_HOST, SERVER_PORT))
 
 socket_server.listen()
 
