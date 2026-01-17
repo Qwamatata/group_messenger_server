@@ -47,6 +47,7 @@ def client_handler(client_socket):
             IlyasMessageProtocol.send(client_socket, '200'.encode(), 'ERR')
             client_socket.close()
             break
+        print('50th line', string)
         if string.decode()[0] == '/':
             if string.decode() == '/users':
                 all_users = db_client.execute_query('SELECT username FROM Users;', DB_HOST, DB_PORT)
@@ -57,6 +58,19 @@ def client_handler(client_socket):
                     else:
                         user['status'] = 'offline'
                 IlyasMessageProtocol.send(client_socket, json.dumps(all_users).encode(), 'JSN')
+            if string.decode() == '/change_password':
+                print('62th in if')
+                old_password = IlyasMessageProtocol.receive(client_socket)[1]
+                print(old_password)
+                if db_helper.check_password(name, old_password, DB_HOST, DB_PORT):
+                    print('password_checked')
+                    IlyasMessageProtocol.send(client_socket, "1".encode(), 'ERR')
+                    print('1 sent')
+                    new_password = IlyasMessageProtocol.receive(client_socket)[1]
+                    print('new')
+                    db_client.execute_query(f'UPDATE Users SET password = {new_password} WHERE username = {name};', DB_HOST, DB_PORT)
+                else:
+                    IlyasMessageProtocol.send(client_socket, '2'.encode(), 'ERR')
         else:
             if string.decode()[0] == '@':
                 names_and_message = string.decode().split(' ')

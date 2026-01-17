@@ -1,0 +1,3 @@
+"1" - correct password
+"2" - incorrect password (<3 (input again))
+"200" - client exit
